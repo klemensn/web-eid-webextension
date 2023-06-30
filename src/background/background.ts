@@ -108,13 +108,6 @@ async function onTokenSigningAction(message: TokenSigningMessage, sender: Messag
   }
 }
 
-browser.runtime.onInstalled.addListener(async ({ reason, temporary }) => {
-  if (temporary) return;
-  if (reason == "install") {
-    await showConsent();
-  }
-});
-
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if ((message as ExtensionRequest).action) {
     onAction(message, sender).then(sendResponse);
@@ -123,3 +116,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+
+// Asking consent after installation is currently only required in Firefox.
+const isConsentRequired = navigator.userAgent.includes("Firefox");
+
+if (isConsentRequired) {
+  browser.runtime.onInstalled.addListener(async ({ reason, temporary }) => {
+    if (temporary) return;
+    if (reason == "install") {
+      await showConsent();
+    }
+  });
+}
